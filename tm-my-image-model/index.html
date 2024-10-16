@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teachable Machine Model</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+</head>
+<body>
+    <h1>Teachable Machine Model</h1>
+    <p>Click the button to load the model and classify an image.</p>
+    <button onclick="init()">Load Model</button>
+    <video id="webcam" autoplay playsinline></video>
+    <div id="prediction"></div>
+
+    <script type="text/javascript">
+        let model, webcam, labelContainer, maxPredictions;
+
+        async function init() {
+            const URL = "./";
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Setup webcam
+            const flip = true; // whether to flip the webcam
+            webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+            await webcam.setup(); // request access to the webcam
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            document.getElementById("webcam").appendChild(webcam.canvas);
+        }
+
+        async function loop() {
+            webcam.update(); // update the webcam frame
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            document.getElementById("prediction").innerHTML = prediction[0].className + ": " + prediction[0].probability.toFixed(2);
+        }
+    </script>
+</body>
+</html>
